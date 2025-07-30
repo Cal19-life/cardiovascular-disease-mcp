@@ -5,7 +5,7 @@ import * as tools from "./mcp-tools";
 import { IMcpTool } from "./IMcpTool";
 
 const app = express();
-const port = 6000;
+const port = 5000;
 
 app.use(express.json());
 
