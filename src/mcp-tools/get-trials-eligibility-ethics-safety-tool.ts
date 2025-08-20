@@ -25,7 +25,8 @@ class GetEthicalClinicalTrials implements IMcpTool {
     server.tool(
       "get-trials-eligibility-ethics-safety",
       "Retrieves actively-recruiting clinical trials and returns information specifically "+
-      "about their eligibility criteria, as well as metrics of safety and ethics.",
+      "about their eligibility criteria, as well as metrics of safety and ethics."+
+      "Can retrieve information on specific trials via a comma-separated string of NCTIds.",
       {
         condition: z
           .string()
@@ -35,9 +36,9 @@ class GetEthicalClinicalTrials implements IMcpTool {
           .optional()
           .describe("The location of the clinical trial (optional)"),
         trialId: z
-          .string()
+          .string() //TODO: fix so it can handle one or multiple IDs
           .optional()
-          .describe("Specific NCT ID of a clinical trial (optional)"),
+          .describe("Specific NCT ID(s) of clinical trial(s) (optional)"),
       },
       async ({ condition, location, trialId }) => {
         try {
@@ -53,7 +54,7 @@ class GetEthicalClinicalTrials implements IMcpTool {
             args["query.locn"] = location; // filter by location
           }
           if (trialId) {
-            args["query.term"] = trialId; // directly filter by trial ID; TODO-- call get-clinical-trial-by-id
+            args["filter.ids"] = trialId; // directly filter by trial ID; TODO fix so it can handle one or multiple IDs
           }
 
           // Restrict to recruiting trials only
@@ -78,7 +79,7 @@ class GetEthicalClinicalTrials implements IMcpTool {
           // ---------------------------------------------------------
           // Step 2: Fetch from ClinicalTrials.gov
           // ---------------------------------------------------------
-          const studies = await fetchClinicalTrials(args);
+          const studies = await fetchClinicalTrials(args);//TODO change so you can iterate through all pages of trials
           console.log("Number of studies fetched:", studies.length);//TODO REMOVE: DEBUG
           // ---------------------------------------------------------
           // Step 3: Format studies into readable text
@@ -90,10 +91,14 @@ class GetEthicalClinicalTrials implements IMcpTool {
           // --------------------------------------------------------- 
           // Step 4: Return as text response
           // ---------------------------------------------------------
-          //TODO: complete disclaimer
           return createTextResponse("Filtered Clinical Trials (Eligibility, Safety, Ethics):\n" +
               formattedStudies+ 
-              "\n Disclaimer: This tool"
+              "\n Disclaimer: This tool receives only ongoing recruiting studies from ClinicalTrials.gov. "+
+              "Proxy data-fields are used to approximate eligibility, safety, and ethics. "+
+              "IRB approval is not always directly exposed by the API, and safety fields may not capture the full risk/benefit profile. "+
+              "The ethics filtering relies on oversight-related fields"+
+              "Not all fields necessary to make judgement on ethics and safety are available in the API response. "+
+              "If you do not have the necessray information to make a judgement, indicate 'The requested studies do not have enough information to answer your query'"
               );               
 
         } catch (error) {
