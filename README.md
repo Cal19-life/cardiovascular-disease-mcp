@@ -51,16 +51,15 @@ This custom MCP server is based off of [Darena Health's default Community MCP Re
 ### Running Locally
 
 1. Install [NPM][1] and install/update [Node][2]
-2. Run `cd server/fhir-crud` to navigate to the mcp server directory
-3. Run `npm install` to install all dependencies onto the project
-4. Run `npm start` to start the server on **port 5000** of localhost
+2. Run `npm install` to install all dependencies onto the project
+3. Run `npm start` to start the server on **port 5000** of localhost
 
 <details>
 <summary>Running on Docker</summary>
 
 ### Running on Docker
 
-1. Install [Docker Desktop][5]
+1. Install and open [Docker Desktop][5]
 2. In terminal, run this to create a docker image and run the container
 
    ```bash
