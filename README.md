@@ -2,17 +2,6 @@
 
 An open source repository containing a CVD risk model predictor and an external MCP server for use in Darena Health (MeldRx)
 
-## Quick Setup
-
-1. Open terminal and run this command to clone the repository
-
-   ```bash
-   git clone https://github.com/jamesvdinh/cardiovascular-disease-mcp.git
-   ```
-
-2. Install [VS Code][4]
-3. Open `VS Code` and go to `File -> Open Folder` and select the `cardiovascular-disease-mcp` folder
-
 ## CVD Risk Model
 
 Utilizes the risk model from Oracle Health's [ascvd-risk-calculator](https://github.com/cerner/ascvd-risk-calculator/tree/master) which is based off of the Pooled Cohort Equations and lifetime risk prediction tools. This calculator follows the [2013 ACC/AHA Guideline on the Treatment of Blood Cholesterol to Reduce Atherosclerotic Cardiovascular Risk in Adults](http://circ.ahajournals.org/content/circulationaha/129/25_suppl_2/S1.full.pdf).
@@ -73,7 +62,7 @@ This custom MCP server is based off of [Darena Health's default Community MCP Re
 For local development, use ngrok for creating a quick endpoint for your local MCP server.
 
 1. Install [ngrok][3] and create an auth token by making an account
-2. In your terminal, run `ngrok http http://localhost:5000`
+2. In your terminal, run `ngrok http 5000`
 3. Copy the ngrok forwarded URL (highlighted below)
 
    ![Terminal](.github/terminal-1.png)
