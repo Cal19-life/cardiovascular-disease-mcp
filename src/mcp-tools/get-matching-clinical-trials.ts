@@ -22,7 +22,7 @@ class GetMatchingClinicalTrials implements IMcpTool {
   registerTool(server: McpServer, req: Request) {
     server.tool(
       "get_matching_clinical_trials",
-      "Retrieves clinical trials studies with search query parameters based on a patient's attributes.",
+      "Retrieves clinical trials that match a patient's demographics and conditions.",
       {
         patientID: z
           .string()
@@ -73,8 +73,6 @@ class GetMatchingClinicalTrials implements IMcpTool {
         const race = getPatientRace(patientResource).join(", ");
 
         try {
-          // API call to ClinicalTrials.gov API (query params: https://clinicaltrials.gov/data-api/api)
-
           const args = {
             "query.cond": condition,
             "query.locn": location,
