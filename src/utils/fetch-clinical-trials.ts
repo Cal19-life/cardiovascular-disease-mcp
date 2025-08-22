@@ -8,6 +8,8 @@ export async function fetchClinicalTrials(args: Record<any, any>, nctID: string 
         headers: { Accept: "application/json" },
     });
 
-    const studies = res.data.studies;
-    return studies;
+    if (nctID) {
+        return res.data
+    }
+    return res.data.studies;
 }
