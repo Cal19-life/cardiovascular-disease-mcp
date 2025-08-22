@@ -28,7 +28,8 @@ class GetClinicalTrialById implements IMcpTool {
             // TODO: parse through this study using searchField if provided
 
             // TODO: format the study information for LLM output
-            return createTextResponse("");
+            const formattedStudy = studiesListedInfo([study]);
+            return createTextResponse(`Clinical trial with ID ${nctID}: \n${formattedStudy}`);
         } catch (error) {
           console.error("Unexpected error:", error);
           return createTextResponse(

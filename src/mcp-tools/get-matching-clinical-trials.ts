@@ -67,39 +67,6 @@ class GetMatchingClinicalTrials implements IMcpTool {
           `${fhirContext.url}/Patient/${effectivePatientId}`,
           { headers }
         );
-
-        // FHIR Observations for retrieving patient vitals and conditions
-        const observations = await getFhirResource(
-          fhirContext,
-          "Observation",
-          effectivePatientId
-        )
-          .then((res) => {
-            if (!res.entry?.length) {
-              return [];
-            }
-            return res.entry.map((x) => x.resource);
-          })
-          .catch((error) => {
-            console.error("Error fetching observations:", error);
-            return [];
-          });
-
-        const conditionsRes = await getFhirResource(
-          fhirContext,
-          "Condition",
-          effectivePatientId
-        )
-          .then((res) => {
-            if (!res.entry?.length) {
-              return [];
-            }
-            return res.entry.map((x) => x.resource);
-          })
-          .catch((error) => {
-            console.error("Error fetching conditions:", error);
-            return [];
-          });
         const name = getPatientName(patientResource);
         const age = getPatientAge(patientResource);
         const gender = getPatientSex(patientResource).toUpperCase();
