@@ -27,18 +27,12 @@ class GetMatchingClinicalTrials implements IMcpTool {
         patientID: z
           .string()
           .describe("The ID of the patient to find clinical trials for"),
-        condition: z
-          .string()
-          .optional()
-          .describe(
-            "The clinical trial condition listed in the study (optional)"
-          ),
         location: z
           .string()
           .optional()
           .describe("The location of the clinical trial (optional)"),
       },
-      async ({ patientID, condition, location }) => {
+      async ({ patientID, location }) => {
         const fhirContext = getFhirContext(req);
         if (!fhirContext) {
           console.log("no fhir context");
@@ -67,32 +61,57 @@ class GetMatchingClinicalTrials implements IMcpTool {
           `${fhirContext.url}/Patient/${effectivePatientId}`,
           { headers }
         );
+
+        const conditionsRes = await getFhirResource(
+          fhirContext,
+          "Condition",
+          effectivePatientId
+        )
+          .then((res) => {
+            if (!res.entry?.length) {
+              return [];
+            }
+            return res.entry.map((x) => x.resource);
+          })
+          .catch((error) => {
+            console.error("Error fetching conditions:", error);
+            return [];
+          });
+
         const name = getPatientName(patientResource);
         const age = getPatientAge(patientResource);
-        const gender = getPatientSex(patientResource).toUpperCase();
-
+        const conditionArray: string[] = conditionsRes
+          .map((x) => x.code?.coding?.map((y) => y.display) || [])
+          .reduce((a, b) => a.concat(b), []);
+        
         try {
           const filters: string[] = [];
 
-          if (condition) {
-            filters.push(`AREA[Condition] "${condition}"`);
+          let conditionFilter = "";
+          if (conditionArray.length > 0) {
+            const joinedConditions = conditionArray
+              .map((c) => `AREA[Condition] "${c}"`)
+              .join(" OR ");
+            conditionFilter = `(${joinedConditions})`; // wrap in parentheses
+          }
+          if (conditionFilter) {
+            filters.push(conditionFilter);
           }
           if (location) {
             filters.push(`AREA[LocationCountry] "${location}"`);
           }
-          if (gender) {
-            filters.push(`AREA[Sex] ${gender}`);
+          if (age) {
+            filters.push(`AREA[MinimumAge] RANGE[MIN,${age} years]`);
+            filters.push(`AREA[MaximumAge] RANGE[${age} years,MAX]`);
           }
-          // if (age) {
-          //   filters.push(`AREA[MinimumAge] RANGE[MIN,${age}]`);
-          //   filters.push(`AREA[MaximumAge] RANGE[${age},MAX]`);
-          // }
 
           filters.push(`AREA[OverallStatus] RECRUITING`);
           const args = {
             "query.term": filters.join(" AND "),
           };
+          console.log("args: ", args);
           const studies = await fetchClinicalTrials(args);
+          console.log(studies);
           const formattedStudies = studiesListedInfo(studies.slice(0, 3));
           return createTextResponse(
             `Clinical trials that ${name} fits the criteria for:\n ${formattedStudies}`
