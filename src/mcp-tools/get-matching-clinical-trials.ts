@@ -70,19 +70,18 @@ class GetMatchingClinicalTrials implements IMcpTool {
         const name = getPatientName(patientResource);
         const age = getPatientAge(patientResource);
         const gender = getPatientSex(patientResource).toUpperCase();
-        const race = getPatientRace(patientResource).join(", ");
 
         try {
+          const filters: string[] = [
+            `AREA[Condition] "${condition}"`,
+            `AREA[LocationCountry] "${location}"`,
+            `AREA[Sex] ${gender}`,
+            `AREA[MinimumAge] RANGE[MIN, ${age}]`,
+            `AREA[MaximumAge] RANGE[${age}, MAX]`,
+            `AREA[OverallStatus] RECRUITING`,
+          ]
           const args = {
-            "query.cond": condition,
-            "query.locn": location,
-            "filter.overallStatus": "RECRUITING",
-            // TODO: Add filters based on patient attributes
-            "query.term": `
-                AREA[SEX]${gender} AND
-                AREA[MinimumAge]RANGE[MIN, ${age}] AND
-                AREA[MaximumAge]RANGE[${age}, MAX]
-            `,
+            "query.term": filters.join(" AND "),
           };
           const studies = await fetchClinicalTrials(args);
           const formattedStudies = studiesListedInfo(studies.slice(0, 3));

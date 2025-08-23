@@ -22,15 +22,10 @@ class GetClinicalTrialById implements IMcpTool {
       },
       async ({ nctID, searchField }) => {
         try {
-            // API call to ClinicalTrials.gov API (query params: https://clinicaltrials.gov/data-api/api)
             const args = {}
             const study = await fetchClinicalTrials(args, nctID);
-            if (searchField) {
-              const fieldValue = searchForField(study, searchField);
-              return createTextResponse(
-                `Clinical trial ${nctID}, field "${searchField}": ${JSON.stringify(fieldValue, null, 2)}`
-              );
-            }
+            // TODO: parse through this study using searchField if provided
+
             const formattedStudy = studiesListedInfo([study]);
             return createTextResponse(`Clinical trial with ID ${nctID}: \n${formattedStudy}`);
         } catch (error) {
