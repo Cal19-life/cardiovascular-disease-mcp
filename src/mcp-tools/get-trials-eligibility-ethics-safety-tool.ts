@@ -26,17 +26,18 @@ class GetEthicalClinicalTrials implements IMcpTool {
       "get-trials-eligibility-ethics-safety",
       "Retrieves actively-recruiting clinical trials and returns information specifically "+
       "about their eligibility criteria, as well as metrics of safety and ethics."+
-      "Can retrieve information on specific trials via a comma-separated string of NCTIds.",
+      "Can retrieve information on one or many specific trials.",
       {
         condition: z
           .string()
+          .optional()
           .describe("The clinical trial condition listed in the study"),
         location: z
           .string()
           .optional()
           .describe("The location of the clinical trial (optional)"),
         trialId: z
-          .string() //TODO: fix so it can handle one or multiple IDs
+          .string().or(z.array(z.string())) // can be a single string or an array of strings
           .optional()
           .describe("Specific NCT ID(s) of clinical trial(s) (optional)"),
       },
@@ -45,7 +46,14 @@ class GetEthicalClinicalTrials implements IMcpTool {
           // ---------------------------------------------------------
           // Step 1: Build query parameters (API search fields)
           // ---------------------------------------------------------
-          const args: Record<string, string> = {};
+          const args: Record<string, string | string[]> = {};
+;
+          /*
+          If no location, condition, or trialId is provided, it will return a subset of all recruiting trials.
+          If only trialId is provided, then condition is not required
+          If only location is provided, then ig it is still fine-- 
+          
+          */
 
           if (condition) {
             args["query.cond"] = condition; // filter by medical condition
@@ -53,9 +61,13 @@ class GetEthicalClinicalTrials implements IMcpTool {
           if (location) {
             args["query.locn"] = location; // filter by location
           }
-          if (trialId) {
+          if (trialId && trialId.length > 0) {
+            if (Array.isArray(trialId) && trialId.length !== 0) {
+            trialId = trialId.map(s => s.trim()).join(",");   // remove leading/trailing whitespace from each entry, join all entries together into one string
+          }
             args["filter.ids"] = trialId; // directly filter by trial ID; TODO fix so it can handle one or multiple IDs
           }
+          
 
           // Restrict to recruiting trials only
           args["filter.overallStatus"] = "RECRUITING";
@@ -79,13 +91,14 @@ class GetEthicalClinicalTrials implements IMcpTool {
           // ---------------------------------------------------------
           // Step 2: Fetch from ClinicalTrials.gov
           // ---------------------------------------------------------
-          const studies = await fetchClinicalTrials(args);//TODO change so you can iterate through all pages of trials
-          console.log("Number of studies fetched:", studies.length);//TODO REMOVE: DEBUG
+          console.log("Fetching clinical trials with args:", args);//TODO REMOVE: DEBUG
+          const studies = await fetchClinicalTrials(args);
+          
           // ---------------------------------------------------------
           // Step 3: Format studies into readable text
           // ---------------------------------------------------------
-          // Limits the number of studies reviewed by LLM to 100 to reduce computational load and time
-          const formattedStudies = studiesListedEthicsSafetyEligibility(studies, 100);
+          // Limits the number of studies reviewed by LLM to 10 to reduce computational load and time
+          const formattedStudies = studiesListedEthicsSafetyEligibility(studies, 10);
 
 
           // --------------------------------------------------------- 
